@@ -10,45 +10,45 @@ if __name__ == '__main__':
     converted_path = "C:/Users/Sinan/Desktop/Stupid/convertsI"
 
     songs = os.listdir(convert_path)
-    song_counter=0
+    song_counter = 0 #Keep track of progress in the console
 
-    size_counter = 0
+    size_counter = 0 #Keep track of the mapset file size
     Title = "Title:δ Table DP Collection 1\n"
     TitleU = "TitleUnicode:Delta Table DP Collection 1\n"
-    Title_Counter = 1
+    Title_Counter = 1 #Increment this every time we hit the upload limit and create a new mapset folder
 
     for song in songs:
         song_counter += 1
         title = song.split(' (by ')[0]          #Extract the title and artist from the song's folder name
         artist = song.split(' (by ')[1][:-1]
-        audio_name = title + artist + '.ogg'
+        audio_name = title + artist + '.ogg'    #Set a to-be name for the map audio
         songdir = convert_path + '/' + song
         bg = None
 
-        for file in os.listdir(songdir):
-            if file[-4:] in ['.bms','.bme','.bml']:
-                print("Song " + str(song_counter) + " of 469")
-                file_path = songdir + '/' + file
+        for file in os.listdir(songdir):                                                   #For every chart file in the BMS folder
+            if file[-4:] in ['.bms','.bme','.bml']:                                        #
+                print("Song " + str(song_counter) + " of 469") #Progress indicator         #
+                file_path = songdir + '/' + file                                           #
+                                                                                           #
+                is_dp = False                                                              #
+                level = None                                                               #
+                                                                                           #
+                with open(file_path,'r',encoding='utf-8',errors='ignore') as f:            #
+                    for line in f.readlines():                                             #
+                        if '#PLAYER 3' in line:                                            #Check if it's DP (The playmode I want)
+                            is_dp = True                                                   #
+                        if '#PLAYER 1' in line:                                            #
+                            break                                                          #
+                        if '#STAGEFILE' in line:                                           #
+                            if '.' in line:                                                #
+                                bg = line[11:-1]                                           #(Also get the BG image name if it uses one)
+                            continue                                                       #
+                                                                                           #
+                if is_dp:                                                                  #
+                    subprocess.call([converter_path,file_path])                            #And run it through Raindrop's converter
 
-                is_dp = False
-                level = None
-
-                with open(file_path,'r',encoding='utf-8',errors='ignore') as f:
-                    for line in f.readlines():
-                        if '#PLAYER 3' in line:
-                            is_dp = True
-                        if '#PLAYER 1' in line:
-                            break
-                        if '#STAGEFILE' in line:
-                            if '.' in line:
-                                bg = line[11:-1]
-                            continue
-
-                if is_dp:
-                    subprocess.call([converter_path,file_path])
-
-        if bg is not None:
-            im = Image.open(songdir + '/' + bg)                                                                #Do shit
+        if bg is not None:                        #If a BG name was found in the last part, create a jpg version and name it to audio_name.jpg for convenience
+            im = Image.open(songdir + '/' + bg)                                                                
             im = im.convert("RGB")
             bg = bg[:-4] + audio_name + ".jpg"
             im.save(songdir + '/' + bg)
