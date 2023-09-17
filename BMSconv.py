@@ -45,7 +45,7 @@ if __name__ == '__main__':
                             continue                                                       #
                                                                                            #
                 if is_dp:                                                                  #
-                    subprocess.call([converter_path,file_path])                            #And run it through Raindrop's converter
+                    subprocess.call([converter_path,file_path])                            #And run it through Raindrop's converter (It outputs to the directory of the original BMS chart)
 
         if bg is not None:                        #If a BG name was found in the last part, create a jpg version and name it to audio_name.jpg for convenience
             im = Image.open(songdir + '/' + bg)                                                                
@@ -53,15 +53,15 @@ if __name__ == '__main__':
             bg = bg[:-4] + audio_name + ".jpg"
             im.save(songdir + '/' + bg)
 
-        for file in os.listdir(songdir):
-            file_path = songdir + '/' + file
+        for file in os.listdir(songdir):        #In a new loop through the Song's directory:
+            file_path = songdir + '/' + file        #Hold the path of the current file in a string for convenience
             if file[-4:] == '.osu':
 
-                new_file = ""
+                new_file = "" #Rewrite the osu file into this string with our changes
 
-                with open(file_path,'r',encoding='utf-8',errors='ignore') as f:
-                    eventing = False
-                    objecting = False
+                with open(file_path,'r',encoding='utf-8',errors='ignore') as f:                           #Go through all the converted osu files, fix the metadata, and remove keysounds from everything
+                    eventing = False  #Keeps track of if we're in the "Events" section of the osu file
+                    objecting = False #Keeps track of if we're in the "Hitobjects" section of the osu file
                     for line in f.readlines():
                         if '[TimingPoints]' in line:
                             eventing = False
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                             else:
                                 new_file += line[:line.index(':')] + ":0:0:0:\n"
                             continue
-                        if 'AudioFilename:' in line:
+                        if 'AudioFilename:' in line:                                #Yanderedev simulator
                             new_file += f'AudioFilename: {audio_name}\n'
                         elif 'osu file format' in line:
                             new_file += 'osu file format v14'
@@ -111,28 +111,28 @@ if __name__ == '__main__':
                             new_file += "SliderTickRate:1\n"
                         elif "[Events]" in line:
                             eventing = True
-                            new_file += f'[Events]\n0,0,"{bg}",0,0\n\n' if bg is not None else '[Events]\n0,0,"convertbg.jpg",0,0\n\n'
+                            new_file += f'[Events]\n0,0,"{bg}",0,0\n\n' if bg is not None else '[Events]\n0,0,"convertbg.jpg",0,0\n\n'  #"convertbg.jpg" is just a default BG I made for the mapset if the BMS chart didn't have a BG
                         elif "[HitObjects]" in line:
                             objecting = True
                             new_file += "[HitObjects]\n"
                         else:
                             new_file += line
 
-                with open(file_path,'w',encoding='utf-8',errors='ignore') as f:
+                with open(file_path,'w',encoding='utf-8',errors='ignore') as f:    #Overwrite the convert with all the changes we made
                     f.write(new_file)
 
-                shutil.move(file_path, converted_path + '/' + file)
-                size_counter += os.path.getsize(converted_path + '/' + file)
+                shutil.move(file_path, converted_path + '/' + file)            #Move the polished osu file into a directory meant to be an osu mapset
+                size_counter += os.path.getsize(converted_path + '/' + file)   #Keep track of the file size
 
             if file == 'audio.ogg':
-                shutil.copy(file_path, converted_path + '/' + audio_name)
-                size_counter += os.path.getsize(converted_path + '/' + audio_name)
+                shutil.copy(file_path, converted_path + '/' + audio_name)            #This is copying the baked audio made using BMX2WAV into the osu mapset, naming it based on the song
+                size_counter += os.path.getsize(converted_path + '/' + audio_name)   #Keep track of the file size
             
             if file == bg:
-                shutil.copy(file_path, converted_path + '/' + bg)
+                shutil.copy(file_path, converted_path + '/' + bg)                    #Same for the background
                 size_counter += os.path.getsize(converted_path + '/' + bg)
         
-        if size_counter > 95000000:
+        if size_counter > 95000000:      #When the size of the osu mapset hits like 93mb, create a new mapset directory and build into that
             size_counter = 0
             converted_path += 'I'
             os.mkdir(converted_path)
