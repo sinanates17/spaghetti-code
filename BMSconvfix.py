@@ -1,6 +1,8 @@
 import os
 import pykakasi
 
+#The other script forgot to set a preview point and clean the difficulty names from unicode, so this does that.
+
 if __name__ == '__main__':
     dir = "C:/Users/Sinan/AppData/Local/osu!/Songs/beatmap-638305163321443923-virtual/"
     kk = pykakasi.kakasi()
